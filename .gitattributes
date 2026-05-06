@@ -1,0 +1,5 @@
+data/raw/LENDHIST2017_2018_utf8.csv filter=lfs diff=lfs merge=lfs -text
+data/processed/LENDHIST2019_2020_cleaned.csv filter=lfs diff=lfs merge=lfs -text
+data/processed/books_2017_2020.csv filter=lfs diff=lfs merge=lfs -text
+data/raw/LENDHIST2017_2018_gb18030.csv filter=lfs diff=lfs merge=lfs -text
+data/raw/LENDHIST2019_2020_utf8.csv filter=lfs diff=lfs merge=lfs -text
