@@ -5,6 +5,7 @@ scipy>=1.7.0
 
 # 机器学习与推荐算法核心
 scikit-learn>=1.0.0
+lightgbm>=4.0.0
 
 # 数据分析与可视化 (EDA)
 matplotlib>=3.4.0
