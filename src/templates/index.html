@@ -5,282 +5,710 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>校园图书馆智能推荐系统</title>
     <style>
+        :root {
+            --bg: #f2f5f9;
+            --card: #ffffff;
+            --text: #1e293b;
+            --muted: #64748b;
+            --line: #dbe3ee;
+            --blue: #2563eb;
+            --teal: #0d9488;
+            --amber: #d97706;
+            --indigo: #4f46e5;
+            --danger: #dc2626;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Microsoft YaHei', sans-serif;
-            background-color: #f4f7f6;
             margin: 0;
-            padding: 0;
+            font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+            color: var(--text);
+            background:
+                    radial-gradient(circle at 10% 10%, #e2e8f0 0%, transparent 40%),
+                    radial-gradient(circle at 90% 90%, #dbeafe 0%, transparent 40%),
+                    var(--bg);
         }
 
         .header {
-            background-color: #2c3e50;
-            color: white;
-            padding: 20px 0;
+            background: linear-gradient(120deg, #0f172a 0%, #1e3a8a 100%);
+            color: #fff;
+            padding: 26px 16px;
             text-align: center;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            letter-spacing: 0;
+        }
+
+        .header p {
+            margin: 8px 0 0;
+            color: #cbd5e1;
+            font-size: 14px;
         }
 
         .container {
-            max-width: 1200px;
-            margin: 30px auto;
-            background: white;
-            padding: 30px;
+            max-width: 1320px;
+            margin: 24px auto 40px;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
             border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
         }
 
-        .search-box {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 40px;
+        .search-card {
+            padding: 18px;
+            margin-bottom: 16px;
         }
 
-        input[type="text"] {
-            width: 50%;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ddd;
-            border-radius: 4px 0 0 4px;
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+        }
+
+        .search-form input {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 12px 14px;
+            font-size: 15px;
             outline: none;
         }
 
-        button {
-            padding: 12px 25px;
-            font-size: 16px;
-            background-color: #3498db;
-            color: white;
+        .search-form input:focus {
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+        }
+
+        .search-form button {
             border: none;
-            border-radius: 0 4px 4px 0;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        button:hover {
-            background-color: #2980b9;
-        }
-
-        /* 左右双栏布局 */
-        .content-wrapper {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 30px;
-            justify-content: space-between;
-        }
-
-        .box {
-            flex: 1;
-            min-width: 450px;
-            background: #f8f9fa;
-            padding: 20px;
             border-radius: 8px;
-            border: 1px solid #e9ecef;
+            background: var(--blue);
+            color: #fff;
+            padding: 12px 18px;
+            font-size: 15px;
+            cursor: pointer;
         }
 
-        .box-title {
-            color: #2c3e50;
-            border-bottom: 2px solid;
-            padding-bottom: 10px;
-            margin-top: 0;
-            margin-bottom: 20px;
+        .search-form button:hover {
+            background: #1d4ed8;
         }
 
-        .history-title {
-            border-color: #27ae60;
+        .pager {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .rec-title {
-            border-color: #3498db;
+        .pager button {
+            padding: 6px 12px;
+            font-size: 13px;
+            border-radius: 6px;
+            border: none;
+            background: var(--blue);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        .pager button[disabled] {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .pager-info {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .error {
+            margin-top: 12px;
+            color: var(--danger);
+            font-weight: 600;
+        }
+
+        .summary-grid {
+            display: grid;
+            gap: 12px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-bottom: 16px;
+        }
+
+        .summary-item {
+            padding: 14px 14px 12px;
+        }
+
+        .summary-item .label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .summary-item .value {
+            margin-top: 8px;
+            font-size: 24px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .summary-item .sub {
+            margin-top: 5px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .layout {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: 1.1fr 1.5fr 1fr;
+        }
+
+        .panel {
+            padding: 14px;
+        }
+
+        .panel h3 {
+            margin: 0 0 12px;
+            font-size: 16px;
+            color: #0f172a;
+        }
+
+        .history-table-wrap {
+            min-height: 430px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            font-size: 13px;
+            table-layout: fixed;
         }
 
         th, td {
-            padding: 10px 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            padding: 8px 6px;
+            border-bottom: 1px solid #eef2f7;
+            vertical-align: top;
         }
 
-        th {
-            color: #555;
-            font-weight: bold;
-        }
-
-        tr:hover {
-            background-color: #fff;
-        }
-
-        .badge {
-            color: white;
-            padding: 3px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .badge-history {
-            background-color: #27ae60;
-        }
-
-        .badge-rec {
-            background-color: #3498db;
-        }
-
-        .error {
-            color: #e74c3c;
+        th.rank-col, td.rank-col {
+            width: 56px;
+            min-width: 56px;
+            max-width: 56px;
             text-align: center;
-            font-weight: bold;
-            margin-top: 20px;
-            font-size: 18px;
+            padding-left: 2px;
+            padding-right: 2px;
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #7f8c8d;
-            font-size: 14px;
-            padding-bottom: 30px;
+        #historyTableBody tr td {
+            height: 44px;
+            vertical-align: middle;
         }
 
-        /* ================= 新增：酷炫的悬浮气泡样式 ================= */
+        .history-title-text {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
         .tooltip {
             position: relative;
             display: inline-block;
-            cursor: pointer;
-            color: #e67e22;
-            font-weight: bold;
-            border-bottom: 1px dashed #e67e22; /* 虚线下划线提示用户可停靠 */
+            width: 100%;
+            cursor: help;
         }
 
         .tooltip .tooltiptext {
             visibility: hidden;
             width: 280px;
-            background-color: #34495e;
-            color: #ecf0f1;
+            background-color: #0f172a;
+            color: #e2e8f0;
             text-align: left;
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px 12px;
             position: absolute;
-            z-index: 10;
-            bottom: 130%; /* 悬浮在书名正上方 */
+            z-index: 20;
+            bottom: 135%;
             left: 50%;
-            margin-left: -140px;
+            transform: translateX(-50%);
             opacity: 0;
-            transition: opacity 0.3s, bottom 0.3s;
-            font-size: 13px;
-            font-weight: normal;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
-            line-height: 1.6;
+            transition: opacity 0.2s ease;
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.35);
+            font-size: 12px;
+            line-height: 1.5;
         }
 
-        /* 气泡的小箭头 */
         .tooltip .tooltiptext::after {
             content: "";
             position: absolute;
             top: 100%;
             left: 50%;
-            margin-left: -8px;
-            border-width: 8px;
+            transform: translateX(-50%);
+            border-width: 6px;
             border-style: solid;
-            border-color: #34495e transparent transparent transparent;
+            border-color: #0f172a transparent transparent transparent;
         }
 
-        /* 鼠标移入时显示 */
         .tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
-            bottom: 150%; /* 增加一点向上浮动的动效 */
         }
 
-        .highlight-num {
-            color: #f1c40f; /* 醒目的黄色数字 */
-            font-size: 16px;
-            font-weight: bold;
+        tr.placeholder-row td {
+            color: transparent;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .rank {
+            min-width: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 2px 8px;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            background: var(--indigo);
+        }
+
+        .bar-track {
+            position: relative;
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #2563eb 0%, #0ea5e9 100%);
+        }
+
+        .meta {
+            display: grid;
+            gap: 8px;
+        }
+
+        .meta-row {
+            display: grid;
+            grid-template-columns: 84px 1fr;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+        }
+
+        .meta-row .k {
+            color: var(--muted);
+        }
+
+        .tiny-chart {
+            margin-top: 6px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px;
+            background: #f8fafc;
+        }
+
+        .tiny-chart-title {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 12px;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--muted);
+            flex-wrap: wrap;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            display: inline-block;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+
+        .footer {
+            margin-top: 18px;
+            color: var(--muted);
+            text-align: center;
+            font-size: 12px;
+        }
+
+        @media (max-width: 1100px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+            .summary-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .header h1 {
+                font-size: 22px;
+            }
+            .search-form {
+                grid-template-columns: 1fr;
+            }
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-
 <div class="header">
-    <h1>📚 校园图书馆智能推荐系统</h1>
-    <p>基于混合协同过滤 (Hybrid CF) 与时间衰减特征挖掘</p>
+    <h1>校园图书馆智能推荐系统</h1>
+    <p>基于混合推荐与用户行为分析</p>
 </div>
 
 <div class="container">
-    <form class="search-box" method="POST" action="/">
-        <input type="text" name="userid" placeholder="请输入读者 ID (例如: 997a8034...)" value="{{ search_id }}"
-               required>
-        <button type="submit">获取分析与推荐</button>
-    </form>
-
-    {% if error_msg %}
-    <div class="error">⚠️ {{ error_msg }}</div>
-    {% endif %}
+    <div class="card search-card">
+        <form class="search-form" method="POST" action="/">
+            <input type="text" name="userid" placeholder="请输入读者 ID（例如: 997a8034...）" value="{{ search_id }}" required>
+            <input type="hidden" name="history_page" value="1">
+            <button type="submit">获取分析与推荐</button>
+        </form>
+        {% if error_msg %}
+        <div class="error">{{ error_msg }}</div>
+        {% endif %}
+    </div>
 
     {% if user_history and recommendations %}
-    <div class="content-wrapper">
+    {% set ns = namespace(max_score=0.0, max_weight=0.0, max_count=0) %}
+    {% for rec in recommendations %}
+    {% if rec.score > ns.max_score %}{% set ns.max_score = rec.score %}{% endif %}
+    {% if rec.total_count > ns.max_count %}{% set ns.max_count = rec.total_count %}{% endif %}
+    {% endfor %}
+    {% for item in user_history %}
+    {% if item.weight > ns.max_weight %}{% set ns.max_weight = item.weight %}{% endif %}
+    {% endfor %}
 
-        <div class="box">
-            <h3 class="box-title history-title">📖 读者近期偏好画像 (Top-10 借阅历史)</h3>
-            <table>
+    <div class="summary-grid">
+        <div class="card summary-item">
+            <div class="label">在线推荐模型</div>
+            <div class="value" style="font-size:17px;">{{ model_name if model_name else "Hybrid-User-CF(alpha=0.2)" }}</div>
+            <div class="sub">按离线测评自动选取</div>
+        </div>
+        <div class="card summary-item">
+            <div class="label">历史行为数</div>
+            <div class="value" id="historyTotalValue">{{ history_total }}</div>
+            <div class="sub">用于画像构建</div>
+        </div>
+        <div class="card summary-item">
+            <div class="label">推荐条目数</div>
+            <div class="value">{{ recommendations|length }}</div>
+            <div class="sub">当前 Top-N 输出</div>
+        </div>
+        <div class="card summary-item">
+            <div class="label">最高预测分</div>
+            <div class="value">{{ "%.4f"|format(ns.max_score) }}</div>
+            <div class="sub">用于排序展示</div>
+        </div>
+    </div>
+
+    <div class="layout">
+        <div class="card panel">
+            <h3>读者近期偏好画像</h3>
+            <div class="history-table-wrap">
+                <table>
                 <thead>
                 <tr>
-                    <th>排序</th>
-                    <th>图书名称</th>
-                    <th title="结合了时间衰减的隐式兴趣得分">偏好权重 ⓘ</th>
+                    <th class="rank-col">序号</th>
+                    <th>图书</th>
+                    <th>权重</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody id="historyTableBody">
                 {% for item in user_history %}
+                    {% set weight_ratio = item.weight_ratio if item.weight_ratio is defined else ((item.weight / ns.max_weight * 100) if ns.max_weight > 0 else 0) %}
                 <tr>
-                    <td><span class="badge badge-history">{{ item.rank }}</span></td>
-                    <td style="font-weight: bold; color: #2c3e50;">《{{ item.title }}》</td>
-                    <td style="color: #27ae60; font-weight: bold;">{{ item.weight }}</td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+                        <td class="rank-col"><span class="rank">{{ item.rank }}</span></td>
+                        <td>
+                            <div class="tooltip">
+                                <span class="history-title-text" title="{{ item.title }}">{{ item.title }}</span>
+                                <span class="tooltiptext">
+                                    <strong>{{ item.title }}</strong><br>
+                                    累计借阅：{{ title_total_map.get(item.title, 0) }}<br>
+                                    简介：{{ title_abstract_map.get(item.title, "暂无内容简介。") }}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight:700;color:var(--teal);margin-bottom:4px;">{{ "%.4f"|format(item.weight) }}</div>
+                            <div class="bar-track"><div class="bar-fill" style="width: {{ "%.2f"|format(weight_ratio) }}%; background:linear-gradient(90deg,#0d9488 0%,#14b8a6 100%);"></div></div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% for _ in range(history_page_size - (user_history|length)) %}
+                    <tr class="placeholder-row">
+                        <td class="rank-col"><span class="rank">&nbsp;</span></td>
+                        <td>&nbsp;</td>
+                        <td><div class="bar-track"><div class="bar-fill" style="width:0%;"></div></div></td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="pager" id="historyPager"
+                 data-userid="{{ search_id }}"
+                 data-page="{{ history_page }}"
+                 data-total-pages="{{ history_total_pages }}"
+                 data-page-size="{{ history_page_size }}">
+                <button type="button" id="historyPrevBtn" {% if history_page <= 1 %}disabled{% endif %}>上一页</button>
+                <button type="button" id="historyNextBtn" {% if history_total_pages == 0 or history_page >= history_total_pages %}disabled{% endif %}>下一页</button>
+                <span class="pager-info" id="historyPagerInfo">
+                    {% if history_total_pages and history_total_pages > 0 %}
+                    第 {{ history_page }} / {{ history_total_pages }} 页，共 {{ history_total }} 条（每页 {{ history_page_size }} 条）
+                    {% else %}
+                    共 {{ history_total }} 条（每页 {{ history_page_size }} 条）
+                    {% endif %}
+                </span>
+            </div>
+            <div class="tiny-chart">
+                <div class="tiny-chart-title">历史偏好强度曲线</div>
+                <svg id="historySpark" width="100%" height="80" viewBox="0 0 360 80" preserveAspectRatio="none"></svg>
+            </div>
         </div>
 
-        <div class="box">
-            <h3 class="box-title rec-title">🎯 为您生成的专属推荐书单 (鼠标悬停查看详情)</h3>
+        <div class="card panel">
+            <h3>个性化推荐结果</h3>
             <table>
                 <thead>
                 <tr>
-                    <th>名次</th>
-                    <th>图书名称</th>
-                    <th>系统预测分</th>
+                    <th class="rank-col">名次</th>
+                    <th>图书</th>
+                    <th>预测分</th>
                 </tr>
                 </thead>
                 <tbody>
                 {% for rec in recommendations %}
+                {% set score_ratio = (rec.score / ns.max_score * 100) if ns.max_score > 0 else 0 %}
                 <tr>
-                    <td><span class="badge badge-rec">{{ rec.rank }}</span></td>
+                    <td class="rank-col"><span class="rank" style="background:var(--blue);">{{ rec.rank }}</span></td>
                     <td>
-                        <div class="tooltip">《{{ rec.title }}》
-                            <span class="tooltiptext">
-                                📊 <strong>全校累计借阅次数：</strong> <span class="highlight-num">{{ rec.total_count }}</span> 次<br>
-                                📝 <strong>内容简介：</strong><br>{{ rec.abstract }}
-                            </span>
-                        </div>
+                        <div style="font-weight:700">{{ rec.title }}</div>
+                        <div style="margin-top:4px;color:var(--muted);font-size:12px;">{{ rec.abstract }}</div>
                     </td>
-                    <td style="color: #3498db; font-weight: bold;">{{ rec.score }}</td>
+                    <td>
+                        <div style="font-weight:700;color:var(--blue);margin-bottom:4px;">{{ "%.4f"|format(rec.score) }}</div>
+                        <div class="bar-track"><div class="bar-fill" style="width: {{ "%.2f"|format(score_ratio) }}%;"></div></div>
+                    </td>
                 </tr>
                 {% endfor %}
                 </tbody>
             </table>
         </div>
 
+        <div class="card panel">
+            <h3>推荐解释面板</h3>
+            <div class="meta">
+                {% for rec in recommendations[:5] %}
+                {% set hot_ratio = (rec.total_count / ns.max_count * 100) if ns.max_count > 0 else 0 %}
+                <div style="padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#f8fafc;">
+                    <div style="font-weight:700;margin-bottom:6px;">#{{ rec.rank }} {{ rec.title }}</div>
+                    <div class="meta-row">
+                        <span class="k">预测分</span>
+                        <span>{{ "%.4f"|format(rec.score) }}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="k">累计借阅</span>
+                        <span>{{ rec.total_count }}</span>
+                    </div>
+                    <div class="meta-row">
+                        <span class="k">热度强度</span>
+                        <span>
+                            <div class="bar-track" style="height:8px;"><div class="bar-fill" style="width: {{ "%.2f"|format(hot_ratio) }}%; background:linear-gradient(90deg,#d97706 0%,#f59e0b 100%);"></div></div>
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="tiny-chart">
+                <div class="tiny-chart-title">推荐分数 vs 借阅热度</div>
+                <svg id="compareBars" width="100%" height="170" viewBox="0 0 320 170" preserveAspectRatio="none"></svg>
+                <div class="legend">
+                    <span><i class="dot" style="background:#2563eb;"></i>预测分（标准化）</span>
+                    <span><i class="dot" style="background:#d97706;"></i>借阅热度（标准化）</span>
+                </div>
+            </div>
+        </div>
     </div>
     {% endif %}
+
+    <div class="footer">
+        毕业设计演示系统 | 推荐结果用于决策参考
+    </div>
 </div>
 
-<div class="footer">
-    <p>本系统为毕业设计演示 Demo | 算法支持：HybridModel (SVD + TF-IDF) | 数据源：东北财经大学图书馆用户借阅记录数据集</p>
-</div>
+{% if user_history and recommendations %}
+<script>
+    (function () {
+        let historyWeights = {{ user_history | map(attribute='weight') | list | tojson }};
+        const recScores = {{ recommendations | map(attribute='score') | list | tojson }};
+        const recCounts = {{ recommendations | map(attribute='total_count') | list | tojson }};
 
+        function drawSparkline(svgId, values, color) {
+            const svg = document.getElementById(svgId);
+            if (!svg || !values || values.length === 0) return;
+            const width = 360;
+            const height = 80;
+            const pad = 8;
+            const max = Math.max(...values);
+            const min = Math.min(...values);
+            const range = (max - min) || 1;
+            const step = (width - pad * 2) / Math.max(1, values.length - 1);
+            let points = "";
+            values.forEach((v, i) => {
+                const x = pad + i * step;
+                const y = height - pad - ((v - min) / range) * (height - pad * 2);
+                points += `${x},${y} `;
+            });
+            svg.innerHTML = `
+                <polyline fill="none" stroke="${color}" stroke-width="2.5" points="${points.trim()}"></polyline>
+            `;
+        }
+
+        function drawCompareBars(svgId, scores, counts) {
+            const svg = document.getElementById(svgId);
+            if (!svg || !scores || scores.length === 0) return;
+            const limit = Math.min(6, scores.length, counts.length);
+            const s = scores.slice(0, limit);
+            const c = counts.slice(0, limit);
+            const sMax = Math.max(...s) || 1;
+            const cMax = Math.max(...c) || 1;
+
+            const width = 320;
+            const height = 170;
+            const baseY = 150;
+            const left = 18;
+            const groupW = (width - left * 2) / limit;
+            const barW = Math.min(16, groupW * 0.28);
+            const gap = 5;
+            let html = "";
+            for (let i = 0; i < limit; i++) {
+                const x = left + i * groupW + (groupW - barW * 2 - gap) / 2;
+                const hs = (s[i] / sMax) * 110;
+                const hc = (c[i] / cMax) * 110;
+                html += `<rect x="${x}" y="${baseY - hs}" width="${barW}" height="${hs}" fill="#2563eb" rx="2"></rect>`;
+                html += `<rect x="${x + barW + gap}" y="${baseY - hc}" width="${barW}" height="${hc}" fill="#d97706" rx="2"></rect>`;
+                html += `<text x="${x + barW}" y="165" font-size="10" text-anchor="middle" fill="#64748b">#${i + 1}</text>`;
+            }
+            html += `<line x1="12" y1="${baseY}" x2="308" y2="${baseY}" stroke="#cbd5e1" stroke-width="1"></line>`;
+            svg.innerHTML = html;
+        }
+
+        drawSparkline("historySpark", historyWeights, "#0d9488");
+        drawCompareBars("compareBars", recScores, recCounts);
+
+        const pagerEl = document.getElementById("historyPager");
+        const prevBtn = document.getElementById("historyPrevBtn");
+        const nextBtn = document.getElementById("historyNextBtn");
+        const pagerInfoEl = document.getElementById("historyPagerInfo");
+        const tableBodyEl = document.getElementById("historyTableBody");
+        const historyTotalValueEl = document.getElementById("historyTotalValue");
+
+        if (!pagerEl || !prevBtn || !nextBtn || !tableBodyEl) return;
+
+        const userId = pagerEl.dataset.userid;
+        let currentPage = parseInt(pagerEl.dataset.page || "1", 10);
+        let totalPages = parseInt(pagerEl.dataset.totalPages || "0", 10);
+        const pageSize = parseInt(pagerEl.dataset.pageSize || "10", 10);
+
+        function updatePager(total, page, pages) {
+            currentPage = page;
+            totalPages = pages;
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = totalPages === 0 || currentPage >= totalPages;
+            pagerInfoEl.textContent = totalPages > 0
+                ? `第 ${currentPage} / ${totalPages} 页，共 ${total} 条（每页 ${pageSize} 条）`
+                : `共 ${total} 条（每页 ${pageSize} 条）`;
+            historyTotalValueEl.textContent = String(total);
+        }
+
+        function renderHistory(items) {
+            if (!items || items.length === 0) items = [];
+            const realRows = items.map((item) => {
+                const ratio = Number(item.weight_ratio || 0);
+                return `
+                    <tr>
+                        <td class="rank-col"><span class="rank">${item.rank}</span></td>
+                        <td>
+                            <div class="tooltip">
+                                <span class="history-title-text" title="${item.title}">${item.title}</span>
+                                <span class="tooltiptext">
+                                    <strong>${item.title}</strong><br>
+                                    累计借阅：${Number(item.total_count || 0)}<br>
+                                    简介：${item.abstract || "暂无内容简介。"}
+                                </span>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-weight:700;color:var(--teal);margin-bottom:4px;">${Number(item.weight).toFixed(4)}</div>
+                            <div class="bar-track"><div class="bar-fill" style="width:${ratio.toFixed(2)}%; background:linear-gradient(90deg,#0d9488 0%,#14b8a6 100%);"></div></div>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+            const placeholders = Array.from({length: Math.max(0, pageSize - items.length)}, () => `
+                <tr class="placeholder-row">
+                    <td class="rank-col"><span class="rank">&nbsp;</span></td>
+                    <td>&nbsp;</td>
+                    <td><div class="bar-track"><div class="bar-fill" style="width:0%;"></div></div></td>
+                </tr>
+            `).join("");
+            tableBodyEl.innerHTML = realRows + placeholders;
+            historyWeights = items.map((x) => Number(x.weight) || 0);
+            drawSparkline("historySpark", historyWeights, "#0d9488");
+        }
+
+        async function loadHistoryPage(targetPage) {
+            const formData = new FormData();
+            formData.append("userid", userId);
+            formData.append("history_page", String(targetPage));
+            const resp = await fetch("/history_page", { method: "POST", body: formData });
+            if (!resp.ok) return;
+            const data = await resp.json();
+            if (!data.ok) return;
+            renderHistory(data.items || []);
+            updatePager(data.history_total || 0, data.history_page || 1, data.history_total_pages || 0);
+        }
+
+        prevBtn.addEventListener("click", function () {
+            if (currentPage > 1) loadHistoryPage(currentPage - 1);
+        });
+        nextBtn.addEventListener("click", function () {
+            if (totalPages > 0 && currentPage < totalPages) loadHistoryPage(currentPage + 1);
+        });
+    })();
+</script>
+{% endif %}
 </body>
 </html>

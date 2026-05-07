@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import pandas as pd
 import numpy as np
 import scipy.sparse as sp
 import re
+import math
 from pathlib import Path
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.decomposition import TruncatedSVD
@@ -151,7 +152,9 @@ class CampusHybridRecommender:
         if target_user_id not in self.user_id_to_idx:
             return []
         user_history = self.ui_weights[self.ui_weights["USERID"] == target_user_id]
-        user_history = user_history.sort_values(by="INTEREST_WEIGHT", ascending=False).head(top_n)
+        user_history = user_history.sort_values(by="INTEREST_WEIGHT", ascending=False)
+        if top_n is not None:
+            user_history = user_history.head(top_n)
         history_list = []
         for rank, row in enumerate(user_history.itertuples()):
             book_id = row.BOOK_ID
@@ -275,6 +278,33 @@ class CampusHybridRecommender:
         return recommendations
 
 
+def paginate_user_history(user_id, page, page_size=10):
+    full_history = system.get_user_history(user_id, top_n=None)
+    global_max_weight = max((float(x.get("weight", 0)) for x in full_history), default=0.0)
+    history_total = len(full_history)
+    history_total_pages = max(1, math.ceil(history_total / page_size)) if history_total > 0 else 0
+    page = min(max(1, int(page)), history_total_pages) if history_total_pages > 0 else 1
+    start = (page - 1) * page_size
+    end = start + page_size
+    page_history = full_history[start:end]
+    return page_history, history_total, history_total_pages, page, global_max_weight
+
+
+def enrich_history_items(history_items, global_max_weight=0.0):
+    enriched = []
+    for item in history_items:
+        title = item.get("title", "")
+        entry = dict(item)
+        entry["abstract"] = str(system.title_to_abstract.get(title, "暂无内容简介。"))
+        entry["total_count"] = int(system.title_to_total_count.get(title, 0))
+        if global_max_weight > 0:
+            entry["weight_ratio"] = float(entry.get("weight", 0)) / global_max_weight * 100.0
+        else:
+            entry["weight_ratio"] = 0.0
+        enriched.append(entry)
+    return enriched
+
+
 print("\n--- 启动智能图书馆后端服务 ---")
 system = CampusHybridRecommender(hybrid_weight=0.6)
 print("系统加载完毕！")
@@ -286,12 +316,23 @@ def index():
     user_history = None
     error_msg = None
     search_id = ""
+    history_page = 1
+    history_page_size = 10
+    history_total = 0
+    history_total_pages = 0
 
     if request.method == "POST":
         search_id = request.form.get("userid", "").strip()
+        try:
+            history_page = max(1, int(request.form.get("history_page", "1").strip()))
+        except ValueError:
+            history_page = 1
         if search_id:
             if search_id in system.user_id_to_idx:
-                user_history = system.get_user_history(search_id, top_n=10)
+                user_history, history_total, history_total_pages, history_page, global_max_weight = paginate_user_history(
+                    search_id, history_page, history_page_size
+                )
+                user_history = enrich_history_items(user_history, global_max_weight)
                 recommendations = system.recommend(search_id, top_n=10)
             else:
                 error_msg = "未找到该读者的借阅历史，无法生成推荐。"
@@ -304,6 +345,39 @@ def index():
         recommendations=recommendations,
         error_msg=error_msg,
         search_id=search_id,
+        history_page=history_page,
+        history_page_size=history_page_size,
+        history_total=history_total,
+        history_total_pages=history_total_pages,
+        model_name=system.best_model_name,
+        title_abstract_map=system.title_to_abstract,
+        title_total_map=system.title_to_total_count,
+    )
+
+
+@app.route("/history_page", methods=["POST"])
+def history_page():
+    user_id = request.form.get("userid", "").strip()
+    try:
+        page = int(request.form.get("history_page", "1").strip())
+    except ValueError:
+        page = 1
+    page_size = 10
+
+    if not user_id or user_id not in system.user_id_to_idx:
+        return jsonify({"ok": False, "error": "invalid_user"}), 400
+
+    user_history, history_total, history_total_pages, page, global_max_weight = paginate_user_history(user_id, page, page_size)
+    return jsonify(
+        {
+            "ok": True,
+            "items": enrich_history_items(user_history, global_max_weight),
+            "history_total": history_total,
+            "history_total_pages": history_total_pages,
+            "history_page": page,
+            "history_page_size": page_size,
+            "history_global_max_weight": global_max_weight,
+        }
     )
 
 
